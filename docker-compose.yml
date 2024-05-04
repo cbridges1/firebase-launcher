@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  firebase:
+    container_name: firebase-launcher
+    build:
+      context: .
+    restart: unless-stopped
+    ports:
+      - 8800:8800 #ui
+      - 9099:9099 #auth
+      - 9199:9199 #storage
+      - 4400:4400 #emulator
+      - 4500:4500 #emulator
+      - 1000:1000 #server
