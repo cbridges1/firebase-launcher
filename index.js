@@ -3,7 +3,7 @@ const {exec} = require('child_process');
 
 const app = express();
 
-const port = process.env.ENV_PORT ? process.env.ENV_PORT : 1000;
+const port = process.env.SERVER_PORT ? process.env.SERVER_PORT : 1000;
 
 var newProc = '';
 
