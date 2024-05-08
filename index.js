@@ -11,6 +11,7 @@ const port = process.env.SERVER_PORT ? process.env.SERVER_PORT : 1000;
 
 let delay = 2000;
 let timeout = 3000;
+let initialLoad = false;
 
 const uiUrl = `http://localhost:${process.env.UI_PORT}`;
 
@@ -38,25 +39,31 @@ const wait = () => {
   });
 };
 
-// TODO: Possibly add this to decrease initial load time
-// const prerun = async () => {
-//   try {
-//     fs.readFileSync('./pid.txt');
-//   } catch (error) {
-//     exec(`bash start.sh`);
-//     delay = 0;
-//     timeout = 20000;
-//     await wait();
-//     exec(`bash stop.sh`);
-//     delay = 2000;
-//     timeout = 3000;
-//     await wait();
-//   }
-// }
+// TODO: Review to see if this is decreasing initial load time
+const prerun = async () => {
+  try {
+    fs.readFileSync('./pid.txt');
+  } catch (error) {
+    initialLoad = true;
+    exec(`bash start.sh`);
+    delay = 0;
+    timeout = 24000;
+    await wait();
+    exec(`bash stop.sh`);
+    delay = 2000;
+    timeout = 3000;
+    await wait();
+    initialLoad = false;
+  }
+}
 
-// prerun();
+prerun();
 
 app.post('/start', async (req, res) => {
+  if(initialLoad) {
+    res.send({status: 'initial load in progress'});
+  }
+
   delay = 1000;
   timeout = 3000;
   const test = await wait();
@@ -64,10 +71,7 @@ app.post('/start', async (req, res) => {
   if(test) {
     res.send({status: 'running'});
   } else {
-    exec(`bash start.sh`);
-    delay = 0;
-    timeout = 20000;
-    const result = await wait();
+    const result = await start();
   
     if(result) {
       res.send({status: 'success', message: `firebase ui at ${uiUrl}`});
@@ -78,16 +82,53 @@ app.post('/start', async (req, res) => {
 });
 
 app.post('/stop', async (req, res) => {
-  exec(`bash stop.sh`);
-  delay = 2000;
-  timeout = 3000;
-  const result = await wait();
+  if(initialLoad) {
+    res.send({status: 'initial load in progress'});
+  }
 
+  const result = await stop();
   if(!result) {
     res.send({status: 'success'});
   } else {
     res.send({status: 'error'});
   }
 });
+
+app.post('/reset', async (req, res) => {
+  if(initialLoad) {
+    res.send({status: 'initial load in progress'});
+  }
+  
+  const result = await stop();
+  if(!result) {
+    fs.rmdir("data", { 
+      recursive: true, 
+    }, (error) => { 
+      if (error) { 
+        console.log(error); 
+      } 
+      else { 
+        console.log("Firebase data removed"); 
+      } 
+    }); 
+    res.send({status: 'success'});
+  } else {
+    res.send({status: 'error'});
+  }
+});
+
+const start = async () => {
+  exec(`bash start.sh`);
+  delay = 0;
+  timeout = 24000;
+  return await wait();
+}
+
+const stop = async () => {
+  exec(`bash stop.sh`);
+  delay = 2000;
+  timeout = 3000;
+  return await wait();
+}
 
 app.listen(port, () => console.log(`Firebase launcher is listening on port ${port}.`));
