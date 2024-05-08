@@ -15,7 +15,7 @@ let initialLoad = false;
 
 const uiUrl = `http://localhost:${process.env.UI_PORT}`;
 
-const wait = () => {
+const wait = (timeoutOverride) => {
   const opts = {
     resources: [
       uiUrl,
@@ -23,7 +23,7 @@ const wait = () => {
     delay: delay, // initial delay in ms, default 0
     interval: 100, // poll interval in ms, default 250ms
     simultaneous: 1, // limit to 1 connection per resource at a time
-    timeout: timeout, // timeout in ms, default Infinity
+    timeout: timeoutOverride ? timeoutOverride : timeout, // timeout in ms, default Infinity
     tcpTimeout: 1000, // tcp timeout in ms, default 300ms
     window: 1000, // stabilization time in ms, default 750ms
   };
@@ -61,7 +61,7 @@ prerun();
 
 app.post('/start', async (req, res) => {
   if(initialLoad) {
-    res.send({status: 'initial load in progress'});
+    await wait(20000);
   }
 
   delay = 1000;
