@@ -4,6 +4,7 @@ const fs = require('fs');
 const express = require('express');
 const {exec} = require('child_process');
 var waitOn = require('wait-on');
+const kill = require('kill-port');
 
 const app = express();
 
@@ -98,23 +99,24 @@ app.post('/reset', async (req, res) => {
   if(initialLoad) {
     res.send({status: 'initial load in progress'});
   }
+
+  await kill(process.env.AUTH_PORT);
+  await kill(process.env.STORAGE_PORT);
+  await kill(process.env.FIRESTORE_PORT);
+  await kill(process.env.UI_PORT);
   
-  const result = await stop();
-  if(!result) {
-    fs.rmdir("data", { 
-      recursive: true, 
-    }, (error) => { 
-      if (error) { 
-        console.log(error); 
-      } 
-      else { 
-        console.log("Firebase data removed"); 
-      } 
-    }); 
-    res.send({status: 'success'});
-  } else {
-    res.send({status: 'error'});
-  }
+  fs.rmdir("data", { 
+    recursive: true, 
+  }, (error) => { 
+    if (error) { 
+      res.send({status: 'error'});
+    } 
+    else { 
+      console.log("Firebase data removed"); 
+    } 
+  }); 
+
+  res.send({status: 'success'});
 });
 
 const start = async () => {
