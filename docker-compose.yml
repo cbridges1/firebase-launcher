@@ -10,9 +10,11 @@ services:
       - UI_PORT=8800
       - AUTH_PORT=9099
       - STORAGE_PORT=9199
+      - FIRESTORE_PORT=8082
       - SERVER_PORT=1000
     ports:
       - 8800:8800 #ui
       - 9099:9099 #auth
       - 9199:9199 #storage
+      - 8082:8082 #firestore
       - 1000:1000 #server

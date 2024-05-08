@@ -5,15 +5,12 @@ const fs = require('fs');
 const address = "0.0.0.0";
 
 let file = { 
-    // firestore: {
-    //     rules: "firestore.rules",
-    //     indexes: "firestore.indexes.json"
-    // },
+    firestore: {
+        rules: "firestore.rules",
+        indexes: "firestore.indexes.json"
+    },
     storage: {
         rules: "storage.rules"
-    },
-    firestore: {
-        rules: "firestore.rules"
     },
     emulators: {
         auth: {
@@ -23,6 +20,10 @@ let file = {
         storage: {
             host: address,
             port: process.env.STORAGE_PORT
+        },
+        firestore: {
+            host: address,
+            port: process.env.FIRESTORE_PORT
         },
         ui: {
             enabled: true,
