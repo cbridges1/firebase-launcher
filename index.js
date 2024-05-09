@@ -12,6 +12,7 @@ const port = process.env.SERVER_PORT ? process.env.SERVER_PORT : 1000;
 let delay = 2000;
 let timeout = 3000;
 let initialLoad = false;
+let processLocked = false;
 
 const uiUrl = `http://localhost:${process.env.UI_PORT}`;
 
@@ -40,10 +41,16 @@ const wait = (timeoutOverride) => {
 };
 
 const start = async () => {
-  exec(`bash start.sh`);
-  delay = 0;
-  timeout = 24000;
-  return await wait();
+  let result = true;
+  if(!processLocked) {
+    processLocked = true;
+    exec(`bash start.sh`);
+    delay = 0;
+    timeout = 24000;
+    result = await wait();
+  }
+  processLocked = false;
+  return result;
 }
 
 const stop = async () => {
