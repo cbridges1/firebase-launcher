@@ -1,6 +1,5 @@
 require('dotenv').config();
 const fs = require('fs');
-
 const express = require('express');
 const {exec} = require('child_process');
 var waitOn = require('wait-on');
@@ -40,20 +39,40 @@ const wait = (timeoutOverride) => {
   });
 };
 
+const start = async () => {
+  exec(`bash start.sh`);
+  delay = 0;
+  timeout = 24000;
+  return await wait();
+}
+
+const stop = async () => {
+  exec(`bash stop.sh`);
+  delay = 2000;
+  timeout = 3000;
+  return await wait();
+}
+
+const restart = async () => {
+  await stop();
+  await start();
+}
+
 // TODO: Review to see if this is decreasing initial load time
 const prerun = async () => {
   try {
     fs.readFileSync('./pid.txt');
+    if(process.env.AUTO_START) {
+      await start();
+    }
   } catch (error) {
     initialLoad = true;
-    exec(`bash start.sh`);
-    delay = 0;
-    timeout = 24000;
-    await wait();
-    exec(`bash stop.sh`);
-    delay = 2000;
-    timeout = 3000;
-    await wait();
+    await start();
+    if(process.env.AUTO_START !== undefined && process.env.AUTO_START) {
+
+    } else {
+      await stop();
+    }
     initialLoad = false;
   }
 }
@@ -95,6 +114,15 @@ app.post('/stop', async (req, res) => {
   }
 });
 
+app.post('/quick-stop', (req, res) => {
+  if(initialLoad) {
+    res.send({status: 'initial load in progress'});
+  }
+
+  stop();
+  res.send({status: 'process started'});
+});
+
 app.post('/reset', async (req, res) => {
   if(initialLoad) {
     res.send({status: 'initial load in progress'});
@@ -119,18 +147,16 @@ app.post('/reset', async (req, res) => {
   res.send({status: 'success'});
 });
 
-const start = async () => {
-  exec(`bash start.sh`);
-  delay = 0;
-  timeout = 24000;
-  return await wait();
-}
+app.post('/restart', async (req, res) => {
+  await restart();
 
-const stop = async () => {
-  exec(`bash stop.sh`);
-  delay = 2000;
-  timeout = 3000;
-  return await wait();
-}
+  res.send({status: 'process started'});
+});
+
+app.post('/quick-restart', async (req, res) => {
+  restart();
+
+  res.send({status: 'process started'});
+});
 
 app.listen(port, () => console.log(`Firebase launcher is listening on port ${port}.`));

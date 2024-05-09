@@ -12,6 +12,7 @@ services:
       - STORAGE_PORT=9199
       - FIRESTORE_PORT=8082
       - SERVER_PORT=1000
+      - AUTO_START=true
     ports:
       - 8800:8800 #ui
       - 9099:9099 #auth
