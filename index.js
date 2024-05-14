@@ -69,7 +69,7 @@ const restart = async () => {
 const prerun = async () => {
   try {
     fs.readFileSync('./pid.txt');
-    if(process.env.AUTO_START) {
+    if(process.env.AUTO_START !== undefined && process.env.AUTO_START) {
       await start();
     }
   } catch (error) {
@@ -135,6 +135,8 @@ app.post('/reset', async (req, res) => {
     res.send({status: 'initial load in progress'});
   }
 
+  await stop();
+
   await kill(process.env.AUTH_PORT);
   await kill(process.env.STORAGE_PORT);
   await kill(process.env.FIRESTORE_PORT);
@@ -149,7 +151,9 @@ app.post('/reset', async (req, res) => {
     else { 
       console.log("Firebase data removed"); 
     } 
-  }); 
+  });
+
+  start();
 
   res.send({status: 'success'});
 });
