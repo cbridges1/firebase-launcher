@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "act": "act --workflows .github/workflows/build-push-image.yaml --secret-file .env --pull=false --rm",
     "start": "node create-firebase-json.js && node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
